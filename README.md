@@ -88,6 +88,28 @@ Each result contains the Chunk text, RRF score, contributing retrieval channels 
 their ranks. The `source` object contains Document, DocumentVersion and Chunk IDs,
 title, source path, heading path, and metadata.
 
+## OpenDART financial reports
+
+Set `OPENDART_API_KEY` in `.env`, then collect all available annual, semiannual,
+first-quarter, and third-quarter statements for one company and business year:
+
+```bash
+uv run python -m scripts.collect_company_info --code 005930 --year 2025
+```
+
+Omit `--year` to use the current business year. Add `--dry-run` to call and validate
+OpenDART without writing files, connecting to PostgreSQL, or calling Ollama.
+
+Raw responses are written below `raw/opendart/<stock-code>/<year>/`; generated
+Markdown is written below `knowledge/generated/opendart/<stock-code>/<year>/`.
+Both are local generated data and are ignored by Git. Re-running the command uses
+stable paths and the existing ingestion content hash, so unchanged documents do not
+create another version or embedding.
+
+Phase 4 does not add financial-specific PostgreSQL tables. The generated Markdown
+uses the existing Document, DocumentVersion, and Chunk pipeline. It preserves the
+report name, filing date, CFS/OFS distinction, financial values, and receipt number.
+
 ## Verification
 
 ```bash

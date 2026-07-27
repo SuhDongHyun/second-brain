@@ -1,4 +1,5 @@
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import AnyHttpUrl, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -16,6 +17,11 @@ class Settings(BaseSettings):
     embedding_model: str = "bge-m3"
     embedding_dimensions: int = Field(default=1024, gt=0)
     ollama_timeout_seconds: float = Field(default=60, gt=0)
+    opendart_api_key: str = ""
+    opendart_base_url: AnyHttpUrl = "https://opendart.fss.or.kr/api"
+    opendart_timeout_seconds: float = Field(default=30, gt=0)
+    opendart_raw_dir: Path = Path("raw/opendart")
+    opendart_markdown_dir: Path = Path("knowledge/generated/opendart")
 
     @field_validator("embedding_dimensions")
     @classmethod

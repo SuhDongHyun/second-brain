@@ -210,7 +210,9 @@ tempCodeRunnerFile.py
 .pypirc
 
 # Second-Brain local data and secrets
+docs/
 raw/
+knowledge/generated/
 data/
 models/
 cache/
