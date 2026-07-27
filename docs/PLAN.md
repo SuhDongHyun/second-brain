@@ -43,6 +43,16 @@ metadata filter, Hybrid Retrieval service, Query API와 source 응답까지 구�
 질문용 sample 2개를 포함한 12개 문서를 실제 Ollama `bge-m3`로 적재했으며, Blueprint의
 두 대표 질문이 각각 올바른 source를 최상위 결과로 반환하는 end-to-end 검증을 완료했다.
 
+Phase 4 OpenDART는 재무 전용 PostgreSQL table 없이 구현한다. 종목코드와 사업연도로
+사업·반기·1분기·3분기보고서의 CFS/OFS 전체 재무제표를 수집하고, 원본 JSON과 검색용
+Markdown을 결정적으로 생성한 뒤 기존 ingestion을 재사용한다. 실행 진입점은
+`uv run python -m scripts.collect_company_info --code <6자리 종목코드> --year <사업연도>`다.
+전용 integration/migration test DB를 구성한 뒤 전체 test 75개가 skip 없이 통과했다.
+OpenDART API key를 설정해 삼성전자 2025년 정기보고서 4개와 CFS/OFS 원본을 실제 수집했고,
+재실행 시 `unchanged=4`를 확인했다. Hybrid Retrieval에서는 가장 최근 사업보고서의
+연결 손익계산서가 1위로 반환되었으며 보고서명, 공시일, 핵심 수치와 접수번호 source
+chain을 확인했다.
+
 ## Global Constraints
 
 - 기준 설계 문서는 `docs/BLUEPRINT.md`다.
