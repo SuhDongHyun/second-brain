@@ -209,6 +209,18 @@ tempCodeRunnerFile.py
 # PyPI configuration file
 .pypirc
 
+# Second-Brain local data and secrets
+raw/
+data/
+models/
+cache/
+tmp/
+logs/
+postgres-data/
+ollama-data/
+secrets/
+credentials/
+
 # Marimo
 marimo/_static/
 marimo/_lsp/
