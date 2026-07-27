@@ -1,6 +1,6 @@
 # Personal Second-Brain
 
-Phase 1–2 builds the local Markdown knowledge pipeline described in
+Phase 1–3 builds the local Markdown knowledge pipeline and hybrid retrieval API described in
 [`docs/BLUEPRINT.md`](docs/BLUEPRINT.md).
 
 ## Prerequisites
@@ -24,6 +24,11 @@ uv run uvicorn app.main:app --host 127.0.0.1 --port 8000
 `GET /health` checks the API, PostgreSQL connection, and pgvector extension. It returns
 HTTP 503 when a required component is unavailable.
 
+For VS Code debugging, select `Debug Second-Brain API` from Run and Debug. The
+configuration launches `uvicorn` from the repository root so the `app` package is
+importable. Do not use `Python Debugger: Current File` on `app/main.py`; running that
+file directly changes Python's import root to the `app/` directory.
+
 Stop the database with `docker compose down`. Removing the volume with
 `docker compose down --volumes` permanently deletes the local database.
 
@@ -36,8 +41,8 @@ ollama pull bge-m3
 uv run python -m scripts.ingest knowledge/samples
 ```
 
-The first run reports `created=10`. Running the same command again reports
-`unchanged=10` and does not call Ollama for unchanged documents. Changing content or
+The first run reports `created=12`. Running the same command again reports
+`unchanged=12` and does not call Ollama for unchanged documents. Changing content or
 validated metadata creates a new `DocumentVersion`; earlier versions remain stored.
 Reverting to earlier content also creates a new version so the full change history is
 preserved.
@@ -53,6 +58,35 @@ normalizes line endings, removes trailing whitespace, and ensures one final newl
 `Chunk.token_count` is a deterministic regex-based estimate, not a model tokenizer
 count. Heading paths and source paths are stored so a later provenance graph can trace
 answers back to their source.
+
+## Hybrid retrieval
+
+`POST /api/v1/query` embeds the question with the configured Ollama model, searches
+current non-deleted chunks with PostgreSQL full-text search and pgvector cosine
+distance, and combines both rankings with Reciprocal Rank Fusion. It returns search
+evidence and source identifiers; it does not generate an LLM answer.
+
+```bash
+curl --fail-with-body http://127.0.0.1:8000/api/v1/query \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "query": "Oracle Cloud에서 ADK 접속 문제를 어떻게 해결했지?",
+    "filters": {
+      "project": "second-brain",
+      "tags": ["google-adk"],
+      "limit": 5
+    }
+  }'
+```
+
+Supported filters are `project`, `domain`, `source_type`, `document_type`, `tags`,
+`updated_from`, `updated_to`, and `limit`. Scalar metadata uses exact matching,
+`tags` requires all supplied tags, dates are timezone-aware ISO 8601 values, and
+`limit` must be between 1 and 50.
+
+Each result contains the Chunk text, RRF score, contributing retrieval channels and
+their ranks. The `source` object contains Document, DocumentVersion and Chunk IDs,
+title, source path, heading path, and metadata.
 
 ## Verification
 
@@ -77,8 +111,9 @@ suite accepts only loopback database URLs whose names end with `_test`, rejects 
 effective application database and matching test URLs, prepares each schema from
 Alembic `base`, and returns both schemas to `base` during teardown.
 
-## Phase 1–2 scope
+## Phase 1–3 scope
 
-This phase supports Markdown only. URL, PDF, PPT/PPTX intake, hybrid retrieval,
-Google ADK, Graphify, Oracle synchronization, and the Knowledge Workspace UI are
-intentionally deferred as documented in [`docs/PLAN.md`](docs/PLAN.md).
+These phases support Markdown ingestion and evidence retrieval only. URL, PDF,
+PPT/PPTX intake, answer generation with Google ADK, Graphify, Oracle synchronization,
+and the Knowledge Workspace UI are intentionally deferred as documented in
+[`docs/PLAN.md`](docs/PLAN.md).
