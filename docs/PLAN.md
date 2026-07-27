@@ -12,7 +12,8 @@
 
 **최종 갱신:** 2026-07-27
 
-Phase 1–2 구현과 실제 환경 검증을 완료했다. Phase 3 이후 기능은 아직 시작하지 않았다.
+Phase 1–2 구현과 실제 환경 검증을 완료했다. Phase 3 Hybrid Retrieval도
+`phase-3-hybrid-retrieval` 브랜치에서 구현과 실제 환경 검증을 완료했다.
 
 완료된 결과:
 
@@ -21,21 +22,26 @@ Phase 1–2 구현과 실제 환경 검증을 완료했다. Phase 3 이후 기�
 - Alembic `0002`가 A→B→A document content reversion을 새 version으로 보존한다.
 - YAML front matter parsing, Markdown normalization, content hash, heading chunking을 구현했다.
 - Ollama `bge-m3`가 실제 1024차원 embedding을 생성한다.
-- sample Markdown 10개를 적재하고 동일 입력의 `unchanged=10`을 확인했다.
+- sample Markdown 12개를 적재하고 동일 입력의 `unchanged=12`를 확인했다.
 - 수정 문서만 새 version과 embedding을 생성하는 incremental ingestion을 확인했다.
 - 일반 integration DB와 destructive migration DB를 분리하고 test 종료 시 base로 정리한다.
-- 전체 test 46개, Ruff lint/format, `uv lock --check`, `git diff --check`가 통과했다.
+- 전체 test 63개, Ruff lint/format, `uv lock --check`, `git diff --check`가 통과했다.
 
 현재 개발 DB 상태:
 
 - Alembic revision: `0002 (head)`
-- documents: 10
-- current document versions: 10
+- documents: 12
+- current document versions: 12
 - 모든 chunk embedding dimensions: 1024
 
-다음 작업은 Phase 3 Hybrid Retrieval의 상세 계획 수립이다. Keyword search, vector search,
-metadata filter, result fusion, source 반환까지만 Phase 3 범위로 다루며 OpenDART, Google ADK,
-Knowledge Workspace, provenance graph, Oracle Sync는 후속 Phase로 유지한다.
+Phase 3 상세 계획은
+`docs/superpowers/plans/2026-07-27-phase-3-hybrid-retrieval.md`에 기록했다. Keyword search,
+vector search, metadata filter, result fusion, source 반환까지만 Phase 3 범위로 다루며
+OpenDART, Google ADK, Knowledge Workspace, provenance graph, Oracle Sync는 후속 Phase로
+유지한다. 검색 계약과 Reciprocal Rank Fusion, PostgreSQL keyword/vector retrieval,
+metadata filter, Hybrid Retrieval service, Query API와 source 응답까지 구현했다. 대표
+질문용 sample 2개를 포함한 12개 문서를 실제 Ollama `bge-m3`로 적재했으며, Blueprint의
+두 대표 질문이 각각 올바른 source를 최상위 결과로 반환하는 end-to-end 검증을 완료했다.
 
 ## Global Constraints
 
@@ -101,6 +107,24 @@ Knowledge Workspace, provenance graph, Oracle Sync는 후속 Phase로 유지한�
 6. **삭제 처리:** 디렉터리 전체 동기화 및 soft delete는 Phase 7의 sync 범위다. Phase 2 단일/복수 파일 ingest는 누락 파일을 삭제로 간주하지 않는다.
 7. **Knowledge Workspace와 출처 그래프:** URL, 텍스트, PDF, PPT 입력 UI 및 질문별 provenance graph는 Phase 6 범위다. Phase 1–2에서는 UI나 graph table을 만들지 않고, `Document → DocumentVersion → Chunk` FK, `source_path`, `heading_path`, 안정적인 ID를 통해 후속 provenance API가 출처 관계를 재구성할 수 있게 한다.
 8. **동시 ingest:** 동일 문서를 여러 프로세스가 동시에 처리하는 운영 요건은 없다. DB unique constraint와 한 문서당 transaction으로 무결성을 지키되 분산 lock은 추가하지 않는다.
+
+### 2.3 Clean Architecture 전환 시점
+
+Blueprint는 `domain/application/infrastructure/interfaces` 구조를 제안하지만 특정 Phase의
+일괄 전환을 요구하지 않는다. Phase 1–3은 Markdown ingestion과 retrieval만 있어 평면적인
+기능 모듈이 더 작고 명확하므로 현재 구조를 유지한다.
+
+Phase 4 OpenDART 착수 전에 점진적 전환을 시작한다. OpenDART에서 두 번째 source domain,
+외부 API adapter, 정형 financial facts와 SQL/document retrieval 조합이 추가되는 시점부터
+다음 경계가 실제 의존성 분리에 필요하기 때문이다.
+
+- `domain`: Document, Chunk, retrieval 및 financial 규칙
+- `application`: ingestion, hybrid retrieval, querying use case
+- `infrastructure`: SQLAlchemy/PostgreSQL, Ollama, OpenDART adapter
+- `interfaces`: FastAPI route와 CLI
+
+Phase 4에서도 기존 파일을 한 번에 이동하지 않고, 새 OpenDART 기능과 함께 변경되는
+모듈부터 이전한다. Phase 3 Task 5에는 이 구조 변경을 포함하지 않는다.
 
 ## 3. 생성·변경할 디렉터리와 파일
 
