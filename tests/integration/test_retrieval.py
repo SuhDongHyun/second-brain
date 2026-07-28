@@ -191,6 +191,9 @@ async def test_keyword_search_returns_current_non_deleted_chunks(
 
     assert [result.title for result in results] == ["Oracle Cloud ADK 접속 문제 해결"]
     assert results[0].heading_path == ("개요",)
+    assert results[0].metadata["updated_at"]
+    assert "valid_from" in results[0].metadata
+    assert "valid_to" in results[0].metadata
 
 
 @pytest.mark.asyncio

@@ -53,6 +53,19 @@ OpenDART API key를 설정해 삼성전자 2025년 정기보고서 4개와 CFS/O
 연결 손익계산서가 1위로 반환되었으며 보고서명, 공시일, 핵심 수치와 접수번호 source
 chain을 확인했다.
 
+Phase 5 Google ADK는 기존 Hybrid Retrieval을 async Python Function Tool로 직접
+연결한다. `search_knowledge`는 일반 지식을 검색하고 `query_financial_facts`는 별도
+재무 table 없이 `domain=finance`, `source_type=opendart` 범위의 OpenDART Markdown을
+검색한다. 기존 retrieval 전용 API였던 `POST /api/query`를 ADK 답변 endpoint로
+전환했다. 버전 prefix가 있는
+`POST /api/v1/query` alias는 제공하지 않는다. `local_only` 결과가 하나라도 있으면
+본문과 metadata를 외부 모델에 전달하지 않고 고정된 정책 제한 답변을 반환한다. 격리된
+integration/migration DB를 사용한 전체 test 125개가 통과했다. 실제 호스팅 Gemma
+호출에서는 기술 질문이 `search_knowledge`를 사용해 6개 후보/source를 반환하고 근거
+기반 답변을 생성하는 것을 확인했다. 재무 질문은 `query_financial_facts`를 사용해
+`financial_hybrid` 경로와 최신 삼성전자 사업보고서 접수번호 `20260310002820`을
+반환했다.
+
 ## Global Constraints
 
 - 기준 설계 문서는 `docs/BLUEPRINT.md`다.

@@ -14,3 +14,11 @@ opendart:
   timeout_seconds: 30
   raw_dir: raw/opendart
   markdown_dir: knowledge/generated/opendart
+
+adk:
+  model: gemma-4-31b-it
+  timeout_seconds: 60
+  app_name: second_brain
+  user_id: second_brain_user
+  max_context_tokens: 6000
+  max_results: 6

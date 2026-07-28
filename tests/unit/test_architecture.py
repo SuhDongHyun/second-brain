@@ -3,6 +3,10 @@ from pathlib import Path
 PACKAGE_MARKERS = (
     "app/__init__.py",
     "app/modules/__init__.py",
+    "app/modules/agent/__init__.py",
+    "app/modules/agent/domain/__init__.py",
+    "app/modules/agent/infra/__init__.py",
+    "app/modules/agent/service/__init__.py",
     "app/modules/financial/__init__.py",
     "app/modules/financial/domain/__init__.py",
     "app/modules/financial/infra/__init__.py",

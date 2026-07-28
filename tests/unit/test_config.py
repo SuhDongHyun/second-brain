@@ -24,6 +24,21 @@ def test_opendart_settings_have_portable_defaults() -> None:
     assert str(settings.opendart.markdown_dir) == "knowledge/generated/opendart"
 
 
+def test_adk_settings_have_safe_defaults_and_bounds() -> None:
+    settings = Settings(_env_file=None)
+
+    assert settings.adk.api_key == ""
+    assert settings.adk.model == "gemma-4-31b-it"
+    assert settings.adk.timeout_seconds == 60
+    assert settings.adk.app_name == "second_brain"
+    assert settings.adk.user_id == "second_brain_user"
+    assert settings.adk.max_context_tokens == 6000
+    assert settings.adk.max_results == 6
+
+    with pytest.raises(ValidationError, match="less than or equal to 8"):
+        Settings(_env_file=None, adk={"max_results": 9})
+
+
 def test_non_secret_defaults_are_loaded_from_yaml(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -64,6 +79,8 @@ def test_nested_environment_variables_override_yaml(
     monkeypatch.setenv("EMBEDDING__BASE_URL", "http://127.0.0.1:22434")
     monkeypatch.setenv("EMBEDDING__MODEL", "override-model")
     monkeypatch.setenv("OPENDART__API_KEY", "secret-from-env")
+    monkeypatch.setenv("ADK__API_KEY", "adk-secret-from-env")
+    monkeypatch.setenv("ADK__MODEL", "override-gemma")
 
     settings = Settings(_env_file=None)
 
@@ -71,6 +88,8 @@ def test_nested_environment_variables_override_yaml(
     assert str(settings.embedding.base_url) == "http://127.0.0.1:22434/"
     assert settings.embedding.model == "override-model"
     assert settings.opendart.api_key == "secret-from-env"
+    assert settings.adk.api_key == "adk-secret-from-env"
+    assert settings.adk.model == "override-gemma"
 
 
 def test_legacy_flat_environment_variables_override_yaml(
@@ -197,5 +216,9 @@ def test_get_settings_populates_every_runtime_value(
         assert settings.opendart.timeout_seconds > 0
         assert settings.opendart.raw_dir
         assert settings.opendart.markdown_dir
+        assert settings.adk.model
+        assert settings.adk.timeout_seconds > 0
+        assert settings.adk.max_context_tokens > 0
+        assert 1 <= settings.adk.max_results <= 8
     finally:
         get_settings.cache_clear()

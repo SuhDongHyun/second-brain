@@ -112,6 +112,13 @@ async def _load_candidates(
                 "tags": document.tags,
                 "access_scope": document.access_scope,
                 "llm_policy": document.llm_policy,
+                "updated_at": document.updated_at.isoformat(),
+                "valid_from": (
+                    document.valid_from.isoformat() if document.valid_from is not None else None
+                ),
+                "valid_to": (
+                    document.valid_to.isoformat() if document.valid_to is not None else None
+                ),
             },
         )
         for chunk, document_version, document in rows
