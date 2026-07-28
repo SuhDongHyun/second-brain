@@ -149,6 +149,19 @@ class OpenDartSettings(BaseModel):
     markdown_dir: Path
 
 
+class AdkSettings(BaseModel):
+    """Describe Google ADK model access and bounded answer context.
+    The API key remains optional until the answer endpoint is invoked."""
+
+    api_key: str = ""
+    model: str = Field(min_length=1)
+    timeout_seconds: float = Field(gt=0)
+    app_name: str = Field(min_length=1)
+    user_id: str = Field(min_length=1)
+    max_context_tokens: int = Field(gt=0)
+    max_results: int = Field(ge=1, le=8)
+
+
 class Settings(BaseSettings):
     """Combine runtime, environment, dotenv, YAML, and secret settings.
     Nested models expose validated configuration to application composition."""
@@ -164,6 +177,7 @@ class Settings(BaseSettings):
     database: DatabaseSettings
     embedding: EmbeddingSettings
     opendart: OpenDartSettings
+    adk: AdkSettings
 
     @classmethod
     def settings_customise_sources(

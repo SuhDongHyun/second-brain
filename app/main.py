@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.composition import create_embedding_provider
+from app.composition import create_agent_runner, create_embedding_provider
 from app.config import get_settings
 from app.db import engine
 from app.modules.health.interface.controller import router as health_router
@@ -16,10 +16,14 @@ async def lifespan(application: FastAPI) -> AsyncGenerator[None]:
     Startup registers the provider while shutdown closes it and the engine."""
     settings = get_settings()
     provider = create_embedding_provider(settings)
+    agent_runner = create_agent_runner(settings)
     application.state.embedding_provider = provider
+    application.state.agent_runner = agent_runner
+    application.state.adk_settings = settings.adk
     try:
         yield
     finally:
+        await agent_runner.aclose()
         await provider.aclose()
         await engine.dispose()
 
