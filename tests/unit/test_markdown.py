@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from app.ingestion.markdown import (
+from app.modules.knowledge.domain.document import (
     DocumentMetadata,
     MarkdownValidationError,
     compute_content_hash,

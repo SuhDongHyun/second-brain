@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from app.ingestion.service import IngestionResult
+from app.modules.knowledge.service.ingest_markdown import IngestionResult
 from scripts import ingest
 from scripts.ingest import discover_markdown
 
@@ -69,10 +69,12 @@ async def test_run_reports_results_and_continues_after_failure(
         ingest,
         "get_settings",
         lambda: SimpleNamespace(
-            embedding_model="bge-m3",
-            embedding_dimensions=1024,
-            ollama_base_url="http://localhost:11434",
-            ollama_timeout_seconds=60,
+            embedding=SimpleNamespace(
+                model="bge-m3",
+                dimensions=1024,
+                base_url="http://localhost:11434",
+                timeout_seconds=60,
+            ),
         ),
     )
 

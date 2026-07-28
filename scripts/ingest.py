@@ -7,8 +7,8 @@ from pathlib import Path
 
 from app.config import get_settings
 from app.db import SessionFactory
-from app.embeddings import OllamaEmbeddingProvider
-from app.ingestion.service import ingest_markdown
+from app.modules.knowledge.infra.embedding import OllamaEmbeddingProvider
+from app.modules.knowledge.service.ingest_markdown import ingest_markdown
 
 
 def discover_markdown(paths: list[Path]) -> list[Path]:
@@ -35,10 +35,10 @@ async def run(paths: list[Path]) -> int:
     settings = get_settings()
     counts: Counter[str] = Counter()
     async with OllamaEmbeddingProvider(
-        model=settings.embedding_model,
-        dimensions=settings.embedding_dimensions,
-        base_url=str(settings.ollama_base_url),
-        timeout_seconds=settings.ollama_timeout_seconds,
+        model=settings.embedding.model,
+        dimensions=settings.embedding.dimensions,
+        base_url=str(settings.embedding.base_url),
+        timeout_seconds=settings.embedding.timeout_seconds,
     ) as provider:
         for path in files:
             try:

@@ -1,7 +1,11 @@
 from pathlib import Path
 
-from app.ingestion.chunker import chunk_markdown, embedding_text
-from app.ingestion.markdown import DocumentMetadata, ParsedMarkdown, compute_content_hash
+from app.modules.knowledge.domain.document import (
+    DocumentMetadata,
+    ParsedMarkdown,
+    compute_content_hash,
+)
+from app.modules.knowledge.service.chunk_markdown import chunk_markdown, embedding_text
 
 
 def parsed_document(content: str, metadata: dict[str, object]) -> ParsedMarkdown:

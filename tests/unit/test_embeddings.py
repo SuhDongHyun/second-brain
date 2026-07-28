@@ -1,7 +1,7 @@
 import httpx
 import pytest
 
-from app.embeddings import EmbeddingError, OllamaEmbeddingProvider
+from app.modules.knowledge.infra.embedding import EmbeddingError, OllamaEmbeddingProvider
 
 
 @pytest.mark.parametrize(

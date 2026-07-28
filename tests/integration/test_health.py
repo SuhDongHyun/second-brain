@@ -1,8 +1,9 @@
 import httpx
 import pytest
 
-from app.api.health import HealthResponse, check_health
 from app.main import create_app
+from app.modules.health.interface.controller import check_health
+from app.modules.health.interface.schema import HealthResponse
 
 
 @pytest.mark.asyncio

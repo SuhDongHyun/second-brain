@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
-from app.domain.financial import (
+from app.modules.financial.domain.financial import (
     REPORT_TYPES,
     Company,
     Disclosure,

@@ -61,13 +61,13 @@ answers back to their source.
 
 ## Hybrid retrieval
 
-`POST /api/v1/query` embeds the question with the configured Ollama model, searches
+`POST /api/query` embeds the question with the configured Ollama model, searches
 current non-deleted chunks with PostgreSQL full-text search and pgvector cosine
 distance, and combines both rankings with Reciprocal Rank Fusion. It returns search
 evidence and source identifiers; it does not generate an LLM answer.
 
 ```bash
-curl --fail-with-body http://127.0.0.1:8000/api/v1/query \
+curl --fail-with-body http://127.0.0.1:8000/api/query \
   -H 'Content-Type: application/json' \
   -d '{
     "query": "Oracle Cloud에서 ADK 접속 문제를 어떻게 해결했지?",
@@ -90,7 +90,7 @@ title, source path, heading path, and metadata.
 
 ## OpenDART financial reports
 
-Set `OPENDART_API_KEY` in `.env`, then collect all available annual, semiannual,
+Set `OPENDART__API_KEY` in `.env`, then collect all available annual, semiannual,
 first-quarter, and third-quarter statements for one company and business year:
 
 ```bash

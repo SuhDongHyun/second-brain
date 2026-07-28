@@ -6,17 +6,17 @@ import pytest
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from app.application.financial_files import write_text_atomic
-from app.application.render_financial_markdown import render_financial_markdown
-from app.domain.financial import (
+from app.modules.financial.domain.financial import (
     Company,
     Disclosure,
     FinancialReport,
     FinancialStatement,
     StatementType,
 )
-from app.ingestion.service import IngestionResult, ingest_markdown
-from app.models import Document, DocumentVersion
+from app.modules.financial.infra.files import write_text_atomic
+from app.modules.financial.service.render_financial_markdown import render_financial_markdown
+from app.modules.knowledge.infra.models import Document, DocumentVersion
+from app.modules.knowledge.service.ingest_markdown import IngestionResult, ingest_markdown
 
 pytestmark = pytest.mark.skipif(
     "TEST_DATABASE_URL" not in os.environ,

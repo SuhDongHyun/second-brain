@@ -3,12 +3,12 @@ import uuid
 import httpx
 import pytest
 
-import app.api.query as query_api
-from app.api.query import get_embedding_provider
+import app.modules.knowledge.interface.controller as query_api
 from app.db import get_session
-from app.embeddings import EmbeddingError
 from app.main import create_app
-from app.retrieval import SearchResult
+from app.modules.knowledge.domain.retrieval import SearchResult
+from app.modules.knowledge.infra.embedding import EmbeddingError
+from app.modules.knowledge.interface.controller import get_embedding_provider
 
 
 def result() -> SearchResult:
@@ -57,7 +57,7 @@ async def test_query_api_returns_chunks_and_source_chain(
         base_url="http://test",
     ) as client:
         response = await client.post(
-            "/api/v1/query",
+            "/api/query",
             json={"query": "Oracle ADK", "filters": {"project": "second-brain", "limit": 5}},
         )
 
@@ -89,7 +89,7 @@ async def test_query_api_returns_empty_results(monkeypatch: pytest.MonkeyPatch) 
         transport=httpx.ASGITransport(app=app),
         base_url="http://test",
     ) as client:
-        response = await client.post("/api/v1/query", json={"query": "unknown"})
+        response = await client.post("/api/query", json={"query": "unknown"})
 
     assert response.status_code == 200
     assert response.json() == {"query": "unknown", "results": []}
@@ -102,9 +102,9 @@ async def test_query_api_validates_request() -> None:
         transport=httpx.ASGITransport(app=app),
         base_url="http://test",
     ) as client:
-        blank = await client.post("/api/v1/query", json={"query": " "})
+        blank = await client.post("/api/query", json={"query": " "})
         invalid_limit = await client.post(
-            "/api/v1/query",
+            "/api/query",
             json={"query": "valid", "filters": {"limit": 0}},
         )
 
@@ -126,7 +126,7 @@ async def test_query_api_maps_embedding_failure_to_503(
         transport=httpx.ASGITransport(app=app),
         base_url="http://test",
     ) as client:
-        response = await client.post("/api/v1/query", json={"query": "Oracle ADK"})
+        response = await client.post("/api/query", json={"query": "Oracle ADK"})
 
     assert response.status_code == 503
     assert response.json() == {"detail": "retrieval service unavailable"}

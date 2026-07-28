@@ -3,8 +3,9 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-import app.retrieval as retrieval
-from app.retrieval import RetrievalCandidate, SearchFilters, hybrid_search
+import app.modules.knowledge.service.search_knowledge as retrieval
+from app.modules.knowledge.domain.retrieval import RetrievalCandidate, SearchFilters
+from app.modules.knowledge.service.search_knowledge import hybrid_search
 
 
 class FakeEmbeddingProvider:
