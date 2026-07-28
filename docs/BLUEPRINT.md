@@ -1276,7 +1276,7 @@ async def query_financial_facts(
 
 # 17. API 설계
 
-## POST `/api/v1/query`
+## POST `/api/query`
 
 Request:
 
@@ -1290,24 +1290,34 @@ Request:
 }
 ```
 
-응답에는 출처 목록과 함께 UI가 provenance graph를 그릴 수 있는 구조를 포함한다.
+응답에는 근거 기반 답변, 출처 목록, retrieval 진단과 모델 정보를 포함한다. provenance
+graph는 향후 Knowledge Workspace 범위에서 별도로 추가한다.
 
 ```json
 {
-  "provenance": {
-    "nodes": [
-      {"id": "question:...", "type": "question", "label": "사용자 질문"},
-      {"id": "chunk:...", "type": "chunk", "label": "손익계산서"},
-      {"id": "document:...", "type": "document", "label": "삼성전자 2026년 1분기 연결재무제표"}
-    ],
-    "edges": [
-      {
-        "source": "question:...",
-        "target": "chunk:...",
-        "type": "used_for_answer",
-        "score": 0.91
-      }
-    ]
+  "conversation_id": "request-correlation-id",
+  "answer": "가장 최근 연결재무제표의 핵심 내용은 ...",
+  "sources": [
+    {
+      "document_id": "...",
+      "document_version_id": "...",
+      "chunk_id": "...",
+      "title": "삼성전자 사업보고서",
+      "section": "연결재무제표 (CFS)",
+      "source_path": "knowledge/generated/opendart/...",
+      "source_reference": "20260310002820",
+      "score": 0.03
+    }
+  ],
+  "retrieval": {
+    "route": "financial_hybrid",
+    "candidate_count": 6,
+    "selected_count": 6,
+    "blocked_by_policy": false
+  },
+  "model": {
+    "provider": "google_adk",
+    "name": "gemma-4-31b-it"
   }
 }
 ```

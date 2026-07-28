@@ -1,7 +1,7 @@
 # Personal Second-Brain
 
-Phase 1–3 builds the local Markdown knowledge pipeline and hybrid retrieval API described in
-[`docs/BLUEPRINT.md`](docs/BLUEPRINT.md).
+Phase 1–5 builds the local Markdown knowledge pipeline, Hybrid Retrieval, OpenDART
+collection, and Google ADK answer API described in [`docs/BLUEPRINT.md`](docs/BLUEPRINT.md).
 
 ## Prerequisites
 
@@ -61,32 +61,15 @@ answers back to their source.
 
 ## Hybrid retrieval
 
-`POST /api/query` embeds the question with the configured Ollama model, searches
-current non-deleted chunks with PostgreSQL full-text search and pgvector cosine
-distance, and combines both rankings with Reciprocal Rank Fusion. It returns search
-evidence and source identifiers; it does not generate an LLM answer.
-
-```bash
-curl --fail-with-body http://127.0.0.1:8000/api/query \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "query": "Oracle Cloud에서 ADK 접속 문제를 어떻게 해결했지?",
-    "filters": {
-      "project": "second-brain",
-      "tags": ["google-adk"],
-      "limit": 5
-    }
-  }'
-```
+The knowledge query Tool embeds each question with the configured Ollama model,
+searches current non-deleted chunks with PostgreSQL full-text search and pgvector
+cosine distance, and combines both rankings with Reciprocal Rank Fusion. Google ADK
+uses the resulting evidence internally when serving `POST /api/query`.
 
 Supported filters are `project`, `domain`, `source_type`, `document_type`, `tags`,
 `updated_from`, `updated_to`, and `limit`. Scalar metadata uses exact matching,
 `tags` requires all supplied tags, dates are timezone-aware ISO 8601 values, and
-`limit` must be between 1 and 50.
-
-Each result contains the Chunk text, RRF score, contributing retrieval channels and
-their ranks. The `source` object contains Document, DocumentVersion and Chunk IDs,
-title, source path, heading path, and metadata.
+the answer API `limit` must be between 1 and 8.
 
 ## OpenDART financial reports
 
@@ -109,6 +92,48 @@ create another version or embedding.
 Phase 4 does not add financial-specific PostgreSQL tables. The generated Markdown
 uses the existing Document, DocumentVersion, and Chunk pipeline. It preserves the
 report name, filing date, CFS/OFS distinction, financial values, and receipt number.
+
+## Google ADK answers
+
+Set a Google AI Studio API key in `.env` before using the answer endpoint:
+
+```env
+ADK__API_KEY=your-api-key
+ADK__MODEL=gemma-4-31b-it
+```
+
+`POST /api/query` asks a hosted Gemma model to call one of two Google ADK Function
+Tools before answering:
+
+- `search_knowledge` uses the existing Hybrid Retrieval for general knowledge.
+- `query_financial_facts` restricts the same Hybrid Retrieval to
+  `domain=finance` and `source_type=opendart`.
+
+The financial Tool searches generated OpenDART Markdown. It is not a SQL aggregation
+or a financial facts table, and it does not calculate ratios or investment advice.
+
+```bash
+curl --fail-with-body http://127.0.0.1:8000/api/query \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "question": "삼성전자의 가장 최근 연결재무제표를 요약해줘.",
+    "filters": {
+      "domain": "finance",
+      "limit": 6
+    }
+  }'
+```
+
+The response contains `answer`, `conversation_id`, source provenance,
+retrieval diagnostics, and model information. The returned `conversation_id` is a
+request-correlation identifier. Each turn uses an isolated ephemeral ADK session and
+excludes previous messages and Tool payloads from model context, so questions must be
+self-contained and a later request cannot bypass its current filters.
+
+If any retrieved document is marked `llm_policy: local_only`, the Tool sends no
+document content or metadata to Google. The API returns a fixed policy-limited answer
+and an empty source list. An empty `ADK__API_KEY` does not prevent application startup
+or `/health`; `POST /api/query` returns HTTP 503 until the key is configured.
 
 ## Verification
 
@@ -133,9 +158,9 @@ suite accepts only loopback database URLs whose names end with `_test`, rejects 
 effective application database and matching test URLs, prepares each schema from
 Alembic `base`, and returns both schemas to `base` during teardown.
 
-## Phase 1–3 scope
+## Current scope
 
-These phases support Markdown ingestion and evidence retrieval only. URL, PDF,
-PPT/PPTX intake, answer generation with Google ADK, Graphify, Oracle synchronization,
-and the Knowledge Workspace UI are intentionally deferred as documented in
-[`docs/PLAN.md`](docs/PLAN.md).
+The current implementation supports Markdown ingestion, Hybrid Retrieval, OpenDART
+financial Markdown, and grounded Google ADK answer generation. URL, PDF, PPT/PPTX
+intake, Graphify, Oracle synchronization, persistent conversation storage, and the
+Knowledge Workspace UI remain deferred as documented in [`docs/PLAN.md`](docs/PLAN.md).
