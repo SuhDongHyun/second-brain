@@ -1,0 +1,16 @@
+database:
+  url: postgresql+asyncpg://second_brain:second_brain@localhost:5432/second_brain
+  test_url: postgresql+asyncpg://second_brain:second_brain@localhost:5432/second_brain_test
+  migration_test_url: postgresql+asyncpg://second_brain:second_brain@localhost:5432/second_brain_migration_test
+
+embedding:
+  base_url: http://localhost:11434
+  model: bge-m3
+  dimensions: 1024
+  timeout_seconds: 60
+
+opendart:
+  base_url: https://opendart.fss.or.kr/api
+  timeout_seconds: 30
+  raw_dir: raw/opendart
+  markdown_dir: knowledge/generated/opendart

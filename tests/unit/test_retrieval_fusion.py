@@ -2,9 +2,12 @@ import uuid
 from datetime import UTC, datetime
 
 import pytest
-from pydantic import ValidationError
 
-from app.retrieval import RetrievalCandidate, SearchFilters, reciprocal_rank_fusion
+from app.modules.knowledge.domain.retrieval import (
+    RetrievalCandidate,
+    SearchFilters,
+    reciprocal_rank_fusion,
+)
 
 
 def candidate(label: str) -> RetrievalCandidate:
@@ -21,18 +24,18 @@ def candidate(label: str) -> RetrievalCandidate:
 
 
 def test_search_filters_reject_invalid_limit_and_blank_values() -> None:
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValueError):
         SearchFilters(limit=0)
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValueError):
         SearchFilters(project=" ")
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValueError):
         SearchFilters(tags=["valid", " "])
 
 
 def test_search_filters_require_timezone_aware_ordered_date_range() -> None:
-    with pytest.raises(ValidationError, match="timezone-aware"):
+    with pytest.raises(ValueError, match="timezone-aware"):
         SearchFilters(updated_from=datetime(2026, 7, 1))
-    with pytest.raises(ValidationError, match="updated_from must not be after updated_to"):
+    with pytest.raises(ValueError, match="updated_from must not be after updated_to"):
         SearchFilters(
             updated_from=datetime(2026, 7, 2, tzinfo=UTC),
             updated_to=datetime(2026, 7, 1, tzinfo=UTC),

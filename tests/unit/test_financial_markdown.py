@@ -1,15 +1,15 @@
 from datetime import date
 from pathlib import Path
 
-from app.application.render_financial_markdown import render_financial_markdown
-from app.domain.financial import (
+from app.modules.financial.domain.financial import (
     Company,
     Disclosure,
     FinancialReport,
     FinancialStatement,
     StatementType,
 )
-from app.ingestion.markdown import parse_markdown
+from app.modules.financial.service.render_financial_markdown import render_financial_markdown
+from app.modules.knowledge.domain.document import parse_markdown
 
 
 def test_renderer_creates_ingestible_markdown_with_sources(tmp_path: Path) -> None:

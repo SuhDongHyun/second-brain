@@ -3,14 +3,14 @@ from pathlib import Path
 
 import pytest
 
-from app.application.collect_company_financials import collect_company_financials
-from app.domain.financial import (
+from app.modules.financial.domain.financial import (
     REPORT_TYPES,
     Company,
     Disclosure,
     FinancialStatement,
     StatementType,
 )
+from app.modules.financial.service.collect_company_financials import collect_company_financials
 
 
 class FakeClient:

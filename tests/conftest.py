@@ -20,7 +20,7 @@ def _database_identity(database_url: str) -> tuple[str | None, int, str | None]:
 
 
 def _run_alembic(database_url: str, *arguments: str) -> None:
-    environment = {**os.environ, "DATABASE_URL": database_url}
+    environment = {**os.environ, "DATABASE__URL": database_url}
     subprocess.run(
         ["uv", "run", "alembic", *arguments],
         check=True,
@@ -54,7 +54,7 @@ def validate_test_database_urls() -> Iterator[None]:
     test_database_urls = {
         name: os.getenv(name) for name in ("TEST_DATABASE_URL", "MIGRATION_TEST_DATABASE_URL")
     }
-    _validate_test_database_urls(Settings().database_url, test_database_urls)
+    _validate_test_database_urls(Settings().database.url, test_database_urls)
     yield
 
 

@@ -5,12 +5,12 @@ import asyncio
 from datetime import date
 from pathlib import Path
 
-from app.application.collect_company_financials import collect_company_financials
 from app.config import get_settings
 from app.db import SessionFactory
-from app.embeddings import OllamaEmbeddingProvider
-from app.infrastructure.opendart import OpenDartClient
-from app.ingestion.service import ingest_markdown
+from app.modules.financial.infra.opendart import OpenDartClient
+from app.modules.financial.service.collect_company_financials import collect_company_financials
+from app.modules.knowledge.infra.embedding import OllamaEmbeddingProvider
+from app.modules.knowledge.service.ingest_markdown import ingest_markdown
 
 
 def stock_code(value: str) -> str:
@@ -28,31 +28,31 @@ def business_year(value: str) -> int:
 
 async def run(code: str, year: int, dry_run: bool) -> int:
     settings = get_settings()
-    if not settings.opendart_api_key:
-        print("error: OPENDART_API_KEY is required")
+    if not settings.opendart.api_key:
+        print("error: OPENDART__API_KEY is required")
         return 2
 
     try:
         async with OpenDartClient(
-            api_key=settings.opendart_api_key,
-            base_url=str(settings.opendart_base_url),
-            timeout_seconds=settings.opendart_timeout_seconds,
+            api_key=settings.opendart.api_key,
+            base_url=str(settings.opendart.base_url),
+            timeout_seconds=settings.opendart.timeout_seconds,
         ) as client:
             if dry_run:
                 summary = await collect_company_financials(
                     client=client,
                     stock_code=code,
                     business_year=year,
-                    raw_dir=settings.opendart_raw_dir,
-                    markdown_dir=settings.opendart_markdown_dir,
+                    raw_dir=settings.opendart.raw_dir,
+                    markdown_dir=settings.opendart.markdown_dir,
                     dry_run=True,
                 )
             else:
                 async with OllamaEmbeddingProvider(
-                    model=settings.embedding_model,
-                    dimensions=settings.embedding_dimensions,
-                    base_url=str(settings.ollama_base_url),
-                    timeout_seconds=settings.ollama_timeout_seconds,
+                    model=settings.embedding.model,
+                    dimensions=settings.embedding.dimensions,
+                    base_url=str(settings.embedding.base_url),
+                    timeout_seconds=settings.embedding.timeout_seconds,
                 ) as provider:
 
                     async def ingest(path: Path) -> str:
@@ -63,8 +63,8 @@ async def run(code: str, year: int, dry_run: bool) -> int:
                         client=client,
                         stock_code=code,
                         business_year=year,
-                        raw_dir=settings.opendart_raw_dir,
-                        markdown_dir=settings.opendart_markdown_dir,
+                        raw_dir=settings.opendart.raw_dir,
+                        markdown_dir=settings.opendart.markdown_dir,
                         ingest=ingest,
                     )
     except Exception as exc:

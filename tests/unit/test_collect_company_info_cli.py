@@ -5,8 +5,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from app.application.collect_company_financials import CollectionSummary
-from app.infrastructure.opendart import OpenDartError
+from app.modules.financial.infra.opendart import OpenDartError
+from app.modules.financial.service.collect_company_financials import CollectionSummary
 from scripts import collect_company_info as cli
 from scripts.collect_company_info import business_year, stock_code
 
@@ -26,11 +26,13 @@ def test_cli_validates_code_and_year() -> None:
 
 def settings(api_key: str) -> SimpleNamespace:
     return SimpleNamespace(
-        opendart_api_key=api_key,
-        opendart_base_url="https://example.test/api",
-        opendart_timeout_seconds=1,
-        opendart_raw_dir=Path("raw/opendart"),
-        opendart_markdown_dir=Path("knowledge/generated/opendart"),
+        opendart=SimpleNamespace(
+            api_key=api_key,
+            base_url="https://example.test/api",
+            timeout_seconds=1,
+            raw_dir=Path("raw/opendart"),
+            markdown_dir=Path("knowledge/generated/opendart"),
+        ),
     )
 
 
@@ -58,7 +60,7 @@ async def test_run_requires_api_key_before_constructing_client(
     )
 
     assert await cli.run("005930", 2025, True) == 2
-    assert "OPENDART_API_KEY is required" in capsys.readouterr().out
+    assert "OPENDART__API_KEY is required" in capsys.readouterr().out
 
 
 @pytest.mark.asyncio

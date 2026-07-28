@@ -5,8 +5,8 @@ from datetime import date
 import httpx
 import pytest
 
-from app.domain.financial import REPORT_TYPES, StatementType
-from app.infrastructure.opendart import OpenDartClient, OpenDartError
+from app.modules.financial.domain.financial import REPORT_TYPES, StatementType
+from app.modules.financial.infra.opendart import OpenDartClient, OpenDartError
 
 
 def _zip_with(name: str, content: str) -> bytes:

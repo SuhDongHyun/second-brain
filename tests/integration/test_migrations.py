@@ -14,7 +14,7 @@ pytestmark = pytest.mark.skipif(
 def _migration_environment() -> dict[str, str]:
     return {
         **os.environ,
-        "DATABASE_URL": os.environ["MIGRATION_TEST_DATABASE_URL"],
+        "DATABASE__URL": os.environ["MIGRATION_TEST_DATABASE_URL"],
     }
 
 

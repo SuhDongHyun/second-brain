@@ -7,8 +7,9 @@ import pytest
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.models import Chunk, Document, DocumentVersion
-from app.retrieval import SearchFilters, search_keywords, search_vectors
+from app.modules.knowledge.domain.retrieval import SearchFilters
+from app.modules.knowledge.infra.models import Chunk, Document, DocumentVersion
+from app.modules.knowledge.infra.retrieval import search_keywords, search_vectors
 
 pytestmark = pytest.mark.skipif(
     "TEST_DATABASE_URL" not in os.environ,

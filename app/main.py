@@ -1,24 +1,21 @@
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api.health import router as health_router
-from app.api.query import router as query_router
+from app.composition import create_embedding_provider
 from app.config import get_settings
 from app.db import engine
-from app.embeddings import OllamaEmbeddingProvider
+from app.modules.health.interface.controller import router as health_router
+from app.modules.knowledge.interface.controller import router as query_router
 
 
 @asynccontextmanager
-async def lifespan(application: FastAPI) -> AsyncIterator[None]:
+async def lifespan(application: FastAPI) -> AsyncGenerator[None]:
+    """Own application-wide embedding and database resources.
+    Startup registers the provider while shutdown closes it and the engine."""
     settings = get_settings()
-    provider = OllamaEmbeddingProvider(
-        model=settings.embedding_model,
-        dimensions=settings.embedding_dimensions,
-        base_url=str(settings.ollama_base_url),
-        timeout_seconds=settings.ollama_timeout_seconds,
-    )
+    provider = create_embedding_provider(settings)
     application.state.embedding_provider = provider
     try:
         yield
@@ -28,6 +25,8 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
 
 
 def create_app() -> FastAPI:
+    """Construct the FastAPI application and attach feature routers.
+    The shared lifespan coordinates resources required by those routes."""
     application = FastAPI(title="Personal Second-Brain", lifespan=lifespan)
     application.include_router(health_router)
     application.include_router(query_router)
